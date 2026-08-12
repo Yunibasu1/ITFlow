@@ -1,0 +1,53 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: itflow-n8n
+    restart: unless-stopped
+    environment:
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${N8N_HOST}/
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-UTC}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+      - N8N_WEBHOOK_SECRET=${N8N_WEBHOOK_SECRET}
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - NODE_FUNCTION_ALLOW_BUILTIN=crypto,fs,https,http
+      - GOOGLE_SERVICE_ACCOUNT_JSON=${GOOGLE_SERVICE_ACCOUNT_JSON}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - itflow
+    expose:
+      - "5678"
+
+  caddy:
+    image: caddy:2
+    container_name: itflow-caddy
+    restart: unless-stopped
+    depends_on:
+      - n8n
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - N8N_HOST=${N8N_HOST}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - itflow
+
+volumes:
+  n8n_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  itflow:

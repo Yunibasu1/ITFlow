@@ -1,0 +1,103 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isRole(role) {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    // ── users ────────────────────────────────────────────
+    match /users/{userId} {
+      allow create: if isUser(userId);
+      allow read: if isAuthenticated();
+      allow update: if isUser(userId) || isRole('admin');
+      allow delete: if false;
+    }
+
+    // ── tickets ──────────────────────────────────────────
+    match /tickets/{ticketId} {
+      allow create: if isAuthenticated();
+      allow read: if isUser(resource.data.userId) ||
+                   isUser(resource.data.assignedTo) ||
+                   isRole('technician') && resource.data.assignedTo == null ||
+                   isRole('admin');
+      allow update: if isUser(resource.data.userId) ||
+                    isUser(resource.data.assignedTo) ||
+                    isRole('technician') && resource.data.assignedTo == null ||
+                    isRole('admin');
+      allow delete: if false;
+    }
+
+    // ── comments ─────────────────────────────────────────
+    match /comments/{commentId} {
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated();
+      allow update, delete: if isRole('admin');
+    }
+
+    // ── attachments ──────────────────────────────────────
+    match /attachments/{attachmentId} {
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated();
+      allow update, delete: if isRole('admin');
+    }
+
+    // ── notifications ────────────────────────────────────
+    // Cualquier usuario autenticado puede crear avisos; cada
+    // aviso solo lo puede leer/actualizar su destinatario.
+    match /notifications/{notificationId} {
+      allow read, update: if isUser(resource.data.userId);
+      allow create: if isAuthenticated();
+      allow delete: if isRole('admin');
+    }
+
+    // ── categories ───────────────────────────────────────
+    // Cualquier usuario autenticado puede sembrar la colección vacía
+    // (crear); editar y eliminar quedan reservados al admin.
+    match /categories/{categoryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isRole('admin');
+    }
+
+    // ── evaluations ──────────────────────────────────────
+    match /evaluations/{evaluationId} {
+      allow create: if isUser(request.resource.data.userId);
+      allow read: if isUser(resource.data.userId) || isRole('admin');
+      allow update, delete: if isRole('admin');
+    }
+
+    // ── audit_logs ───────────────────────────────────────
+    match /audit_logs/{logId} {
+      allow read: if isRole('admin');
+      allow write: if isRole('admin');
+    }
+
+    // ── sla_configs ──────────────────────────────────────
+    match /sla_configs/{priority} {
+      allow read: if isAuthenticated();
+      allow write: if isRole('admin');
+    }
+
+    // ── system_configs ───────────────────────────────────
+    // El contador de tickets se incrementa en una transacción del cliente:
+    // cualquier usuario autenticado puede actualizar solo ese documento.
+    match /system_configs/{key} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() &&
+        request.resource.data.keys().hasAll(['ticketCounter', 'updatedAt']) &&
+        request.resource.data.ticketCounter is number;
+      allow delete: if false;
+    }
+  }
+}

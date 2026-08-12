@@ -1,0 +1,87 @@
+import type { Ticket, TicketStatus } from '../../types/Ticket'
+import { STATUS_BAR_COLORS } from '../../utils/ticket'
+import { TICKET_STATUS_LABELS } from '../../types/Ticket'
+import { motion } from 'motion/react'
+
+const ORDER: TicketStatus[] = [
+  'new',
+  'analyzing',
+  'pending',
+  'assigned',
+  'in_progress',
+  'waiting_user',
+  'reopened',
+  'escalated',
+  'resolved',
+  'closed',
+  'cancelled',
+]
+
+export function StatusDistribution({
+  tickets,
+  title = 'Distribución',
+  showClosed = false,
+}: {
+  tickets: Ticket[]
+  title?: string
+  showClosed?: boolean
+}) {
+  const scope = showClosed ? ORDER : ORDER.slice(0, 8)
+  const counts = scope.map((status) => ({
+    status,
+    count: tickets.filter((t) => t.status === status).length,
+  }))
+  const present = counts.filter((c) => c.count > 0)
+  const total = present.reduce((sum, c) => sum + c.count, 0)
+
+  if (total === 0) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          {title}
+        </p>
+        <p className="mt-3 text-sm text-slate-500">Sin datos todavía.</p>
+      </div>
+    )
+  }
+
+  const legend = [...present].sort((a, b) => b.count - a.count).slice(0, 6)
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          {title}
+        </p>
+        <span className="text-xs text-slate-500">{total} tickets</span>
+      </div>
+
+      <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full bg-white/5">
+        {present.map(({ status, count }) => (
+          <motion.div
+            key={status}
+            initial={{ width: 0 }}
+            animate={{ width: `${(count / total) * 100}%` }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className={`h-full ${STATUS_BAR_COLORS[status]}`}
+            title={`${TICKET_STATUS_LABELS[status]}: ${count}`}
+          />
+        ))}
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+        {legend.map(({ status, count }) => (
+          <div key={status} className="flex items-center gap-2 text-sm">
+            <span
+              className={`h-2 w-2 shrink-0 rounded-full ${STATUS_BAR_COLORS[status]}`}
+            />
+            <span className="truncate text-slate-400">
+              {TICKET_STATUS_LABELS[status]}
+            </span>
+            <span className="ml-auto font-semibold text-slate-200">{count}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Ruta: attachments/{ticketId}/{fileId}
+    match /attachments/{ticketId}/{fileId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.resource.size < 5 * 1024 * 1024;
+      allow delete: if isAdmin();
+    }
+
+    // Ruta: avatars/{userId}/{fileId}
+    match /avatars/{userId}/{fileId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId && request.resource.size < 2 * 1024 * 1024;
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}

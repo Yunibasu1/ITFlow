@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Sora", sans-serif;
+  --font-sans: "Manrope", sans-serif;
+}
+
+:root {
+  --bg-deep: #070b14;
+  --accent: #22d3ee;
+  --accent-soft: rgba(34, 211, 238, 0.12);
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  margin: 0;
+  background: var(--bg-deep);
+  color-scheme: dark;
+}
+
+#root {
+  min-height: 100svh;
+  box-sizing: border-box;
+}
+
+/* ── Fondo animado ───────────────────────────────────────── */
+.itflow-grid-bg {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-deep);
+}
+
+/* Rejilla que se desplaza lentamente */
+.itflow-grid-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 30%, black, transparent 78%);
+  animation: itflow-grid-pan 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes itflow-grid-pan {
+  to { background-position: 44px 44px; }
+}
+
+/* Capa de gradientes que se desplaza (nubes de color en movimiento) */
+.itflow-drift {
+  position: absolute;
+  inset: -30%;
+  background:
+    radial-gradient(ellipse 38% 32% at 30% 42%, rgba(34, 211, 238, 0.12), transparent 70%),
+    radial-gradient(ellipse 42% 36% at 70% 58%, rgba(99, 102, 241, 0.14), transparent 70%),
+    radial-gradient(ellipse 34% 30% at 50% 22%, rgba(52, 211, 153, 0.07), transparent 70%);
+  animation: itflow-drift 16s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes itflow-drift {
+  from { transform: translate(-8%, -4%) scale(1); }
+  to { transform: translate(8%, 4%) scale(1.06); }
+}
+
+/* Orbes de luz flotantes */
+.itflow-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.35;
+  animation: itflow-float 9s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes itflow-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(70px, -55px) scale(1.15); }
+  66% { transform: translate(-50px, 45px) scale(0.9); }
+}
+
+/* Partículas que ascienden */
+.itflow-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(34, 211, 238, 0.6);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+  animation: itflow-rise linear infinite;
+  pointer-events: none;
+}
+
+@keyframes itflow-rise {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.9; }
+  90% { opacity: 0.9; }
+  100% { transform: translateY(-100vh) translateX(30px); opacity: 0; }
+}
+
+/* ── Borde gradiente animado en campos enfocados ─────────── */
+.input-gradient-border {
+  position: relative;
+}
+
+.input-gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 13px;
+  background: linear-gradient(90deg, #22d3ee, #6366f1, #34d399, #22d3ee);
+  background-size: 300% 100%;
+  animation: itflow-border-flow 4s linear infinite;
+  z-index: -1;
+}
+
+@keyframes itflow-border-flow {
+  to { background-position: 300% 0; }
+}
+
+/* Respiración del resplandor al enfocar */
+.input-focused {
+  animation: itflow-breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes itflow-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.25); }
+  50% { box-shadow: 0 0 18px 3px rgba(34, 211, 238, 0.35); }
+}

@@ -1,0 +1,148 @@
+{
+  "name": "ITFlow · Clasificacion de ticket con IA",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "itflow/classify",
+        "authentication": "headerAuth",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "0e4b50b5-a838-4424-9851-2dd518d84e20",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "9bcc7486-f3ec-48a0-809d-e4849ee5d26e",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "TYqGYERMqdT5DBc5",
+          "name": "Webhook itflow"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json.body;\nconst category = item.category || 'other';\nconst priority = item.priority || 'medium';\nconst userLabel = item.userName ? item.userName + ' (' + (item.userEmail || '') + ')' : (item.userEmail || 'usuario');\nconst prompt = 'Eres un asistente de soporte TI. Clasifica la incidencia que te dan y responde SOLO con un JSON valido (sin texto adicional) con estas claves: category (una de: hardware, software, network, access, email, security, printers, systems, other), subcategory (subcategoria corta en minusculas, ej: wifi, laptop, outlook, credenciales, impresora), priority (una de: low, medium, high, critical), summary (resumen de 8 a 15 palabras), problem_type (tipo corto de problema, ej: connectivity, auth, performance, hardware_failure), suggested_solution (posible solucion en espanol, 1 a 2 frases).\\n\\nTicket: ' + item.ticketNumber + '\\nTitulo: ' + item.title + '\\nDescripcion: ' + item.description + '\\nCategoria declarada por el usuario: ' + category + '\\nPrioridad declarada por el usuario: ' + priority + '\\nDepartamento: ' + (item.department || 'N/D') + '\\nUsuario: ' + userLabel;\nreturn [{ json: Object.assign({}, item, { prompt: prompt }) }];"
+      },
+      "id": "91d45e9e-7aca-4b43-ade3-6ecdc8e768c1",
+      "name": "Preparar analisis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-goog-api-key",
+              "value": "={{ $env.GEMINI_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { contents: [ { role: 'user', parts: [ { text: $json.prompt } ] } ], generationConfig: { responseMimeType: 'application/json', temperature: 0.2 } } }}",
+        "options": {}
+      },
+      "id": "135a76a9-0418-40a1-876c-026a9019dcc5",
+      "name": "Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Preparar analisis').first().json;\nconst res = $input.first().json;\nconst candidates = res && res.candidates ? res.candidates : [];\nconst parts = candidates[0] && candidates[0].content ? candidates[0].content.parts : [];\nconst rawText = parts[0] && parts[0].text ? parts[0].text : '';\nlet ai = {};\ntry { ai = JSON.parse(rawText); } catch (e) { ai = {}; }\nconst allowedCategories = ['hardware', 'software', 'network', 'access', 'email', 'security', 'printers', 'systems', 'other'];\nconst allowedPriorities = ['low', 'medium', 'high', 'critical'];\nconst safeCategory = allowedCategories.includes(String(ai.category).toLowerCase()) ? String(ai.category).toLowerCase() : String(original.category || 'other').toLowerCase();\nconst safePriority = allowedPriorities.includes(String(ai.priority).toLowerCase()) ? String(ai.priority).toLowerCase() : String(original.priority || 'medium').toLowerCase();\nconst subcategory = String(ai.subcategory || '').slice(0, 40);\nconst summary = String(ai.summary || original.title || '').slice(0, 200);\nconst problemType = String(ai.problem_type || 'general').slice(0, 40);\nconst solution = String(ai.suggested_solution || '').slice(0, 500);\nconst now = new Date().toISOString();\nconst body = { fields: { aiAnalysis: { mapValue: { fields: { category: { stringValue: safeCategory }, subcategory: { stringValue: subcategory }, priority: { stringValue: safePriority }, summary: { stringValue: summary }, problem_type: { stringValue: problemType }, suggested_solution: { stringValue: solution }, model: { stringValue: 'gemini-flash-latest' }, analyzedAt: { timestampValue: now } } } }, updatedAt: { timestampValue: now } } };\nreturn [{ json: { ticketId: original.ticketId, body: body } }];"
+      },
+      "id": "09b45178-9a5b-4a60-bb17-4c63477932de",
+      "name": "Extraer y validar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst https = require('https');\n\nconst sa = JSON.parse($env.GOOGLE_SERVICE_ACCOUNT_JSON);\n\nfunction httpsRequest(options, body) {\n  return new Promise((resolve, reject) => {\n    const req = https.request(options, (res) => {\n      let data = '';\n      res.on('data', (c) => (data += c));\n      res.on('end', () => resolve({ status: res.statusCode, body: data }));\n    });\n    req.on('error', reject);\n    if (body) req.write(body);\n    req.end();\n  });\n}\n\nconst now = Math.floor(Date.now() / 1000);\nconst header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');\nconst claims = Buffer.from(JSON.stringify({\n  iss: sa.client_email,\n  scope: 'https://www.googleapis.com/auth/datastore',\n  aud: sa.token_uri,\n  iat: now,\n  exp: now + 3600,\n})).toString('base64url');\nconst signature = crypto.sign('sha256', Buffer.from(header + '.' + claims), sa.private_key);\nconst jwt = header + '.' + claims + '.' + signature.toString('base64url');\n\nconst form = 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=' + encodeURIComponent(jwt);\n\nconst tokenUri = sa.token_uri.replace(/^https?:\\/\\//, '');\nconst tokenHost = tokenUri.split('/')[0];\nconst tokenPath = tokenUri.slice(tokenUri.indexOf('/'));\nconst tokenRes = await httpsRequest({ method: 'POST', hostname: tokenHost, path: tokenPath, headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(form) } }, form);\nconst tokenData = JSON.parse(tokenRes.body);\nif (!tokenData.access_token) {\n  throw new Error('No access token: ' + tokenRes.status + ' ' + tokenRes.body.slice(0, 300));\n}\n\nconst ticketId = $json.ticketId;\nif (!ticketId) {\n  throw new Error('ticketId no disponible');\n}\n\nif (!$json.body || !$json.body.fields) {\n  throw new Error('body Firestore no disponible en la salida de Extraer y validar');\n}\nconst body = JSON.stringify($json.body);\nconst path = '/v1/projects/' + sa.project_id + '/databases/(default)/documents/tickets/' + ticketId + '?updateMask.fieldPaths=aiAnalysis&updateMask.fieldPaths=updatedAt';\nconst fireRes = await httpsRequest({ method: 'PATCH', hostname: 'firestore.googleapis.com', path, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tokenData.access_token, 'Content-Length': Buffer.byteLength(body) } }, body);\n\nif (fireRes.status !== 200) {\n  throw new Error('Firestore PATCH ' + fireRes.status + ': ' + fireRes.body.slice(0, 300));\n}\n\nreturn { success: true, ticketId, firestoreStatus: fireRes.status };"
+      },
+      "id": "9f0e8c77-1111-4aaa-9bbb-000000000001",
+      "name": "Guardar en Firestore",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "credentials": {}
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Preparar analisis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar analisis": {
+      "main": [
+        [
+          {
+            "node": "Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini": {
+      "main": [
+        [
+          {
+            "node": "Extraer y validar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer y validar": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Firestore",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  }
+}
