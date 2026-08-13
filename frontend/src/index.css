@@ -3,6 +3,7 @@
 @theme {
   --font-display: "Sora", sans-serif;
   --font-sans: "Manrope", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
@@ -21,9 +22,120 @@ body {
   color-scheme: dark;
 }
 
+/* ── Scrollbars ──────────────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.28) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}
+
+/* ── Selección y foco ────────────────────────────────────── */
+::selection {
+  background: rgba(34, 211, 238, 0.3);
+  color: #fff;
+}
+
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid rgba(34, 211, 238, 0.5);
+  outline-offset: 2px;
+}
+
 #root {
   min-height: 100svh;
   box-sizing: border-box;
+}
+
+/* ── Fondo de la app (dentro del shell, sin tocar auth) ──── */
+.itflow-app-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.itflow-app-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black, transparent 82%);
+  pointer-events: none;
+}
+
+.itflow-app-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 45% 28% at 12% -6%, rgba(34, 211, 238, 0.1), transparent 70%),
+    radial-gradient(ellipse 42% 26% at 88% -6%, rgba(99, 102, 241, 0.12), transparent 70%),
+    radial-gradient(ellipse 50% 30% at 50% 108%, rgba(34, 211, 238, 0.05), transparent 72%);
+  pointer-events: none;
+}
+
+/* ── Panel base reutilizable ─────────────────────────────── */
+@layer components {
+  .itflow-panel {
+    border-radius: 1rem;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    background: rgb(255 255 255 / 0.03);
+  }
+
+  .itflow-panel-hover {
+    transition:
+      border-color 0.25s ease,
+      background-color 0.25s ease,
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .itflow-panel-hover:hover {
+    border-color: rgb(34 211 238 / 0.35);
+    background: rgb(255 255 255 / 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 36px -16px rgb(34 211 238 / 0.3);
+  }
+}
+
+/* ── Sheen en botones primarios ──────────────────────────── */
+.itflow-btn-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-130%);
+  animation: itflow-sheen 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes itflow-sheen {
+  55%, 100% { transform: translateX(130%); }
 }
 
 /* ── Fondo animado ───────────────────────────────────────── */

@@ -9,7 +9,7 @@ import { AppShell } from '../../components/layout/AppShell'
 import type { Category } from '../../types/Category'
 import type { Priority } from '../../types/Ticket'
 import { PRIORITY_LABELS } from '../../types/Ticket'
-import { SendIcon, WrenchIcon } from '../../components/ui/icons'
+import { SendIcon, WrenchIcon, CheckIcon } from '../../components/ui/icons'
 
 const inputClass =
   'w-full rounded-xl border border-white/10 bg-slate-900/60 px-3.5 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-slate-600 focus:border-cyan-400'
@@ -253,12 +253,17 @@ export function CreateTicket() {
                       key={p}
                       type="button"
                       onClick={() => setPriority(p)}
-                      className={`rounded-xl border p-3 text-left transition-all ${
+                      className={`relative rounded-xl border p-3 text-left transition-all ${
                         priority === p
                           ? PRIORITY_SELECTED[p]
                           : 'border-white/10 hover:border-white/25'
                       }`}
                     >
+                      {priority === p && (
+                        <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-white">
+                          <CheckIcon width={12} height={12} />
+                        </span>
+                      )}
                       <span className="flex items-center gap-1.5">
                         <span className={`h-2 w-2 rounded-full ${PRIORITY_SLA[p].dot}`} />
                         <span className="text-sm font-semibold text-white">{PRIORITY_LABELS[p]}</span>
@@ -276,7 +281,7 @@ export function CreateTicket() {
               <button
                 type="submit"
                 disabled={submitting || categories.length === 0}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="itflow-btn-sheen relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <SendIcon width={16} height={16} />
                 {submitting ? 'Creando incidencia…' : 'Enviar incidencia'}

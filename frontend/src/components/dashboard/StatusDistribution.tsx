@@ -2,6 +2,7 @@ import type { Ticket, TicketStatus } from '../../types/Ticket'
 import { STATUS_BAR_COLORS } from '../../utils/ticket'
 import { TICKET_STATUS_LABELS } from '../../types/Ticket'
 import { motion } from 'motion/react'
+import { ChartIcon } from '../ui/icons'
 
 const ORDER: TicketStatus[] = [
   'new',
@@ -36,8 +37,11 @@ export function StatusDistribution({
 
   if (total === 0) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <div className="itflow-panel p-5">
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-300">
+            <ChartIcon width={14} height={14} />
+          </span>
           {title}
         </p>
         <p className="mt-3 text-sm text-slate-500">Sin datos todavía.</p>
@@ -48,12 +52,17 @@ export function StatusDistribution({
   const legend = [...present].sort((a, b) => b.count - a.count).slice(0, 6)
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+    <div className="itflow-panel p-5">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-300">
+            <ChartIcon width={14} height={14} />
+          </span>
           {title}
         </p>
-        <span className="text-xs text-slate-500">{total} tickets</span>
+        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs font-medium text-slate-300">
+          {total} tickets
+        </span>
       </div>
 
       <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full bg-white/5">

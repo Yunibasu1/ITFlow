@@ -68,7 +68,7 @@ export function UserTickets() {
         </div>
         <Link
           to="/user/tickets/new"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          className="itflow-btn-sheen relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
         >
           <PlusIcon />
           Nueva incidencia

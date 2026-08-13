@@ -5,7 +5,7 @@ import {
   formatTimeRemaining,
   SLA_LEVEL_STYLES,
 } from '../../utils/sla'
-import { CheckIcon } from '../ui/icons'
+import { CheckIcon, AlertIcon } from '../ui/icons'
 import { useNow } from '../../hooks/useNow'
 
 export function SlaRiskList({
@@ -34,15 +34,20 @@ export function SlaRiskList({
     .slice(0, 6)
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-        {title}
-        {atRisk.length > 0 && (
-          <span className="ml-2 rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-[10px] font-semibold text-red-400">
-            {atRisk.length}
+    <div className="itflow-panel p-5">
+      <div className="flex items-center justify-between">
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-red-500/10 text-red-300">
+            <AlertIcon width={14} height={14} />
           </span>
-        )}
-      </p>
+          {title}
+          {atRisk.length > 0 && (
+            <span className="rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-[10px] font-semibold text-red-400">
+              {atRisk.length}
+            </span>
+          )}
+        </p>
+      </div>
 
       {atRisk.length === 0 ? (
         <p className="mt-3 flex items-center gap-2 text-sm text-emerald-400">

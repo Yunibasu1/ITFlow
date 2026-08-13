@@ -40,7 +40,7 @@ function ActionButton({
   return (
     <button
       {...props}
-      className="inline-flex items-center gap-2 rounded-xl bg-cyan-500/15 px-4 py-2 text-sm font-semibold text-cyan-300 transition-colors hover:bg-cyan-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+      className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 px-4 py-2 text-sm font-semibold text-cyan-200 transition-colors hover:from-cyan-500/30 hover:to-indigo-500/30 hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {children}
     </button>
@@ -646,7 +646,7 @@ export function TicketDetailView({ ticketId }: { ticketId: string }) {
             <button
               type="submit"
               disabled={sending || !commentBody.trim()}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:opacity-50"
+              className="itflow-btn-sheen relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:opacity-50"
             >
               <SendIcon />
             </button>

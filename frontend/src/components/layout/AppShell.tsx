@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useAuth } from '../../context/AuthContext'
 import { logoutUser } from '../../services/auth'
 import { dedupeCategories } from '../../services/categories'
+import { primeNotificationAudio } from '../../utils/notificationSound'
 import { NotificationsBell } from './NotificationsBell'
 import type { Role } from '../../types/User'
 import {
@@ -60,6 +61,10 @@ export function AppShell({
     }
   }, [profile?.role])
 
+  useEffect(() => {
+    primeNotificationAudio()
+  }, [])
+
   if (!profile) return null
   const nav = navForRole(profile.role)
   const fullName = `${profile.name} ${profile.lastname}`.trim()
@@ -73,14 +78,17 @@ export function AppShell({
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 px-5 py-5">
         <div className="relative flex h-9 w-9 items-center justify-center">
-          <div className="absolute inset-0 rounded-lg bg-cyan-400/20 blur-sm" />
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-indigo-500 font-display text-sm font-extrabold text-slate-950">
+          <div className="absolute inset-0 rounded-lg bg-cyan-400/25 blur-md" />
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-indigo-500 font-display text-sm font-extrabold text-slate-950 shadow-lg shadow-cyan-500/30">
             IT
           </div>
         </div>
         <div>
           <p className="font-display text-sm font-bold leading-tight text-white">ITFlow</p>
-          <p className="text-[11px] text-slate-500">Soporte técnico</p>
+          <p className="flex items-center gap-1.5 text-[11px] text-slate-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
+            Soporte técnico
+          </p>
         </div>
       </div>
 
@@ -92,21 +100,28 @@ export function AppShell({
             end={item.end}
             onClick={() => setMenuOpen(false)}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+              `relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-cyan-500/10 text-cyan-400'
+                  ? 'bg-gradient-to-r from-cyan-500/15 to-transparent text-cyan-300'
                   : 'text-slate-400 hover:bg-white/5 hover:text-white'
               }`
             }
           >
-            <span className="shrink-0">{item.icon}</span>
-            {item.label}
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-cyan-400 to-indigo-400 shadow-[0_0_10px_rgba(34,211,238,0.7)]" />
+                )}
+                <span className="shrink-0">{item.icon}</span>
+                {item.label}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
 
       <div className="mt-auto border-t border-white/5 p-4">
-        <div className="mb-3 flex items-center gap-3 px-1">
+        <div className="mb-3 flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.04] p-2.5">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500/30 to-indigo-500/30 text-sm font-bold text-cyan-300">
             {profile.name.charAt(0).toUpperCase()}
           </div>
@@ -130,6 +145,7 @@ export function AppShell({
     <div className="flex min-h-svh bg-slate-950">
       {/* Sidebar escritorio */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-white/5 bg-slate-950/80 backdrop-blur-xl lg:block">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
         {sidebar}
       </aside>
 
@@ -165,7 +181,8 @@ export function AppShell({
       </AnimatePresence>
 
       {/* Contenido */}
-      <div className="flex min-h-svh w-full flex-col lg:pl-64">
+      <div className="itflow-app-bg relative flex min-h-svh w-full flex-col lg:pl-64">
+        <div className="itflow-app-glow" aria-hidden="true" />
         <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-white/5 bg-slate-950/80 px-4 py-3 backdrop-blur-xl lg:px-8">
           <button
             onClick={() => setMenuOpen(true)}
@@ -180,9 +197,10 @@ export function AppShell({
           <div className="ml-auto">
             <NotificationsBell />
           </div>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent" />
         </header>
 
-        <main className="flex-1 px-4 py-6 lg:px-8">{children}</main>
+        <main className="relative flex-1 px-4 py-6 lg:px-8">{children}</main>
       </div>
     </div>
   )

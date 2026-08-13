@@ -60,7 +60,7 @@ export function UserDashboard() {
         <h2 className="font-display text-lg font-bold text-white">Últimas incidencias</h2>
         <Link
           to="/user/tickets/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          className="itflow-btn-sheen relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
         >
           <PlusIcon />
           Nueva incidencia

@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { subscribeAllUsers, updateUserRole } from '../../services/users'
 import { AppShell } from '../../components/layout/AppShell'
-import { SearchIcon, UsersIcon } from '../../components/ui/icons'
+import { StatCard } from '../../components/dashboard/StatCard'
+import { SearchIcon, UsersIcon, WrenchIcon, ShieldIcon } from '../../components/ui/icons'
 import type { Role, User } from '../../types/User'
 
 const ROLE_LABELS: Record<Role, string> = {
@@ -73,24 +74,9 @@ export function AdminUsers() {
   return (
     <AppShell title="Usuarios">
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-          <p className="text-xs text-slate-500">Total</p>
-          <p className="font-display mt-1 text-2xl font-bold text-white">
-            {totals.total}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-          <p className="text-xs text-slate-500">Técnicos</p>
-          <p className="font-display mt-1 text-2xl font-bold text-cyan-300">
-            {totals.technicians}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-          <p className="text-xs text-slate-500">Administradores</p>
-          <p className="font-display mt-1 text-2xl font-bold text-indigo-300">
-            {totals.admins}
-          </p>
-        </div>
+        <StatCard label="Total" value={totals.total} accent="cyan" icon={<UsersIcon />} />
+        <StatCard label="Técnicos" value={totals.technicians} accent="indigo" icon={<WrenchIcon />} />
+        <StatCard label="Administradores" value={totals.admins} accent="amber" icon={<ShieldIcon />} />
       </div>
 
       <div className="mt-6">

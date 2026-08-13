@@ -9,7 +9,18 @@ import {
   type AppNotification,
 } from '../../services/notifications'
 import { timeAgo } from '../../utils/format'
-import { BellIcon, TicketIcon, CommentIcon } from '../ui/icons'
+import {
+  playNotificationSound,
+  isNotificationSoundEnabled,
+  setNotificationSoundEnabled,
+} from '../../utils/notificationSound'
+import {
+  BellIcon,
+  TicketIcon,
+  CommentIcon,
+  VolumeIcon,
+  VolumeOffIcon,
+} from '../ui/icons'
 
 const TYPE_LABEL: Record<string, string> = {
   ticket: 'Ticket',
@@ -24,11 +35,25 @@ export function NotificationsBell() {
   const navigate = useNavigate()
   const [items, setItems] = useState<AppNotification[]>([])
   const [open, setOpen] = useState(false)
+  const [soundOn, setSoundOn] = useState(isNotificationSoundEnabled())
   const boxRef = useRef<HTMLDivElement>(null)
+  const knownIdsRef = useRef<Set<string>>(new Set())
+  const baselineRef = useRef(true)
 
   useEffect(() => {
     if (!currentUser) return
-    return subscribeNotifications(currentUser.uid, setItems)
+    baselineRef.current = true
+    knownIdsRef.current = new Set()
+    return subscribeNotifications(currentUser.uid, (list) => {
+      const known = knownIdsRef.current
+      const freshUnread = baselineRef.current
+        ? []
+        : list.filter((n) => !n.read && !known.has(n.id))
+      baselineRef.current = false
+      list.forEach((n) => known.add(n.id))
+      setItems(list)
+      if (freshUnread.length > 0) playNotificationSound()
+    })
   }, [currentUser])
 
   useEffect(() => {
@@ -46,6 +71,13 @@ export function NotificationsBell() {
 
   function handleOpen() {
     setOpen((v) => !v)
+  }
+
+  function handleToggleSound() {
+    setSoundOn((v) => {
+      setNotificationSoundEnabled(!v)
+      return !v
+    })
   }
 
   function handleClick(item: AppNotification) {
@@ -71,11 +103,19 @@ export function NotificationsBell() {
         className="relative rounded-xl border border-white/10 bg-slate-900/60 p-2.5 text-slate-300 transition-colors hover:border-cyan-400/40 hover:text-cyan-300"
       >
         <BellIcon />
-        {unread > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-slate-950">
-            {unread}
-          </span>
-        )}
+        <AnimatePresence>
+          {unread > 0 && (
+            <motion.span
+              key="badge"
+              initial={{ scale: 0.3, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.3, opacity: 0 }}
+              className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-indigo-500 px-1 text-[10px] font-bold text-slate-950 shadow-md shadow-cyan-500/40"
+            >
+              {unread > 9 ? '9+' : unread}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </button>
 
       <AnimatePresence>
@@ -85,18 +125,37 @@ export function NotificationsBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-12 z-50 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl"
+            className="absolute right-0 top-12 z-50 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-xl"
           >
             <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
-              <p className="text-sm font-semibold text-white">Notificaciones</p>
-              {unread > 0 && (
+              <p className="flex items-center gap-2 text-sm font-semibold text-white">
+                <BellIcon width={16} height={16} className="text-cyan-400" />
+                Notificaciones
+              </p>
+              <div className="flex items-center gap-3">
                 <button
-                  onClick={handleMarkAll}
-                  className="text-xs font-medium text-cyan-400 hover:text-cyan-300"
+                  onClick={handleToggleSound}
+                  title={soundOn ? 'Desactivar sonido' : 'Activar sonido'}
+                  aria-label={soundOn ? 'Desactivar sonido' : 'Activar sonido'}
+                  className={`text-slate-400 transition-colors hover:text-cyan-300 ${
+                    soundOn ? '' : 'opacity-50'
+                  }`}
                 >
-                  Marcar todas leídas
+                  {soundOn ? (
+                    <VolumeIcon width={16} height={16} />
+                  ) : (
+                    <VolumeOffIcon width={16} height={16} />
+                  )}
                 </button>
-              )}
+                {unread > 0 && (
+                  <button
+                    onClick={handleMarkAll}
+                    className="text-xs font-medium text-cyan-400 hover:text-cyan-300"
+                  >
+                    Marcar todas
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="max-h-80 overflow-y-auto">
@@ -109,8 +168,10 @@ export function NotificationsBell() {
                 <button
                   key={item.id}
                   onClick={() => handleClick(item)}
-                  className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/5 ${
-                    item.read ? 'opacity-60' : ''
+                  className={`flex w-full items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors hover:bg-white/5 ${
+                    item.read
+                      ? 'border-transparent opacity-60'
+                      : 'border-cyan-400/60 bg-cyan-500/[0.03]'
                   }`}
                 >
                   <span
@@ -138,7 +199,7 @@ export function NotificationsBell() {
                     </span>
                   </span>
                   {!item.read && (
-                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-cyan-400" />
+                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)]" />
                   )}
                 </button>
               ))}
