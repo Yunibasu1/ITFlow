@@ -25,7 +25,7 @@ Para entrar necesitas una cuenta de usuario registrada en la aplicación. Si aú
 | Hosting        | Firebase Hosting                 |
 | Automatización | Función serverless (Vercel)      |
 | IA             | Google Gemini                    |
-| Notificaciones | Gmail / Telegram / Discord       |
+| Notificaciones | Correo electrónico (Gmail)       |
 
 ## Estructura del repositorio
 
@@ -35,7 +35,7 @@ ITFlow/
 ├── frontend/          # Aplicación React
 ├── firebase/          # Reglas de Firestore y Storage, índices
 ├── functions/         # Cloud Function de Firebase (respaldo, no desplegada)
-├── vercel-functions/  # Función serverless en producción (análisis IA)
+├── vercel-functions/  # Función serverless en producción (análisis IA + notificaciones por email)
 ├── n8n/               # Workflows de n8n (respaldo local)
 ├── docs/              # Documentación
 └── screenshots/       # Capturas de pantalla
