@@ -1,5 +1,6 @@
+import { auth } from './firebase'
+
 const N8N_URL = import.meta.env.VITE_N8N_WEBHOOK_URL as string | undefined
-const N8N_SECRET = import.meta.env.VITE_N8N_WEBHOOK_SECRET as string | undefined
 
 export interface N8nTicketPayload {
   ticketId: string
@@ -17,16 +18,20 @@ export interface N8nTicketPayload {
 
 /**
  * Dispara el análisis IA del ticket en la Cloud Function de Firebase (fire-and-forget).
+ * Autentica con el token de sesión del usuario actual (nunca se envían secretos).
  * La app funciona igual si la función está caída o no configurada.
  */
 export async function triggerTicketAnalysis(payload: N8nTicketPayload): Promise<void> {
   if (!N8N_URL) return
   try {
+    const user = auth.currentUser
+    if (!user) return
+    const idToken = await user.getIdToken()
     await fetch(N8N_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(N8N_SECRET ? { 'x-itflow-secret': N8N_SECRET } : {}),
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify(payload),
     })

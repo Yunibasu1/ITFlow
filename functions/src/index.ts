@@ -1,10 +1,12 @@
 import { onRequest } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions'
 import { initializeApp } from 'firebase-admin/app'
+import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore'
 
 initializeApp()
 const db = getFirestore()
+const auth = getAuth()
 
 const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent'
@@ -115,11 +117,10 @@ function sanitize(raw: string, original: TicketPayload): {
 export const classifyTicket = onRequest(
   { cors: true, maxInstances: 1 },
   async (req, res) => {
-    const secret = process.env.ITFLOW_WEBHOOK_SECRET
     const geminiKey = process.env.GEMINI_API_KEY
 
-    if (!secret || !geminiKey) {
-      logger.error('Faltan variables de entorno (ITFLOW_WEBHOOK_SECRET / GEMINI_API_KEY)')
+    if (!geminiKey) {
+      logger.error('Falta variable de entorno GEMINI_API_KEY')
       res.status(500).json({ error: 'Servidor mal configurado' })
       return
     }
@@ -129,7 +130,16 @@ export const classifyTicket = onRequest(
       return
     }
 
-    if (req.headers['x-itflow-secret'] !== secret) {
+    const header = req.headers.authorization
+    const token = header?.startsWith('Bearer ') ? header.slice(7) : ''
+    if (!token) {
+      res.status(401).json({ error: 'No autorizado' })
+      return
+    }
+
+    try {
+      await auth.verifyIdToken(token)
+    } catch {
       res.status(401).json({ error: 'No autorizado' })
       return
     }
