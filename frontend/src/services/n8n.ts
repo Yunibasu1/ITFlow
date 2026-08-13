@@ -17,7 +17,7 @@ export interface N8nTicketPayload {
 }
 
 /**
- * Dispara el análisis IA del ticket en la Cloud Function de Firebase (fire-and-forget).
+ * Dispara el análisis IA del ticket en la función serverless de Vercel (fire-and-forget).
  * Autentica con el token de sesión del usuario actual (nunca se envían secretos).
  * La app funciona igual si la función está caída o no configurada.
  */
