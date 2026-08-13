@@ -4,7 +4,15 @@ Sistema Inteligente de Gestión y Automatización de Incidencias TI
 
 ## Resumen
 
-Plataforma web para gestionar de manera centralizada las solicitudes e incidencias de soporte técnico. Permite a los usuarios registrar problemas, al equipo de soporte atenderlos, y a los administradores medir el rendimiento mediante IA, automatización con n8n y controles de SLA.
+Plataforma web para gestionar de manera centralizada las solicitudes e incidencias de soporte técnico. Permite a los usuarios registrar problemas, al equipo de soporte atenderlos, y a los administradores medir el rendimiento mediante IA, automatización y controles de SLA.
+
+## 🌐 Aplicación en producción
+
+Puedes acceder a la aplicación desde cualquier navegador:
+
+**https://itflow-4a74b.web.app**
+
+Para entrar necesitas una cuenta de usuario registrada en la aplicación. Si aún no tienes una, pídele a un administrador que cree tu cuenta o regístrate desde la propia página (si el registro está habilitado).
 
 ## Tecnologías
 
@@ -15,8 +23,8 @@ Plataforma web para gestionar de manera centralizada las solicitudes e incidenci
 | Base de datos  | Firestore                        |
 | Archivos       | Firebase Storage                 |
 | Hosting        | Firebase Hosting                 |
-| Automatización | n8n                              |
-| IA             | API del proveedor elegido        |
+| Automatización | Función serverless (Vercel)      |
+| IA             | Google Gemini                    |
 | Notificaciones | Gmail / Telegram / Discord       |
 
 ## Estructura del repositorio
@@ -24,11 +32,13 @@ Plataforma web para gestionar de manera centralizada las solicitudes e incidenci
 ```text
 ITFlow/
 │
-├── frontend/      # Aplicación React
-├── firebase/      # Reglas de Firestore y Storage, índices
-├── n8n/           # Workflows de n8n
-├── docs/          # Documentación
-└── screenshots/   # Capturas de pantalla
+├── frontend/          # Aplicación React
+├── firebase/          # Reglas de Firestore y Storage, índices
+├── functions/         # Cloud Function de Firebase (respaldo, no desplegada)
+├── vercel-functions/  # Función serverless en producción (análisis IA)
+├── n8n/               # Workflows de n8n (respaldo local)
+├── docs/              # Documentación
+└── screenshots/       # Capturas de pantalla
 ```
 
 ## Configuración del entorno
