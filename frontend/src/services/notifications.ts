@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './firebase'
 import { listUsersByRole } from './users'
+import { triggerEmailNotification } from './emailNotifications'
 import type { Role } from '../types/User'
 
 export type NotificationType =
@@ -62,6 +63,7 @@ export async function createNotification(
     read: false,
     createdAt: serverTimestamp(),
   })
+  triggerEmailNotification(input).catch(() => {})
 }
 
 export function notifyUser(

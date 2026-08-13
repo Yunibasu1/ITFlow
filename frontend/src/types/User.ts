@@ -11,6 +11,7 @@ export interface User {
   phone: string
   photoURL: string
   status: 'active' | 'inactive'
+  emailNotifications: boolean
   createdAt: Date
   updatedAt: Date
 }

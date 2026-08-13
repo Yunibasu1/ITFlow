@@ -3,6 +3,7 @@ import { logger } from 'firebase-functions'
 import { initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore'
+import { sendNotificationEmail } from './emailNotifications.js'
 
 initializeApp()
 const db = getFirestore()

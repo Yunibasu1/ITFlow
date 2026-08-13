@@ -14,12 +14,15 @@ import {
   isNotificationSoundEnabled,
   setNotificationSoundEnabled,
 } from '../../utils/notificationSound'
+import { updateUserProfile } from '../../services/users'
 import {
   BellIcon,
   TicketIcon,
   CommentIcon,
   VolumeIcon,
   VolumeOffIcon,
+  MailIcon,
+  MailOffIcon,
 } from '../ui/icons'
 
 const TYPE_LABEL: Record<string, string> = {
@@ -31,14 +34,19 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 export function NotificationsBell() {
-  const { currentUser } = useAuth()
+  const { currentUser, profile } = useAuth()
   const navigate = useNavigate()
   const [items, setItems] = useState<AppNotification[]>([])
   const [open, setOpen] = useState(false)
   const [soundOn, setSoundOn] = useState(isNotificationSoundEnabled())
+  const [emailOn, setEmailOn] = useState(profile?.emailNotifications ?? true)
   const boxRef = useRef<HTMLDivElement>(null)
   const knownIdsRef = useRef<Set<string>>(new Set())
   const baselineRef = useRef(true)
+
+  useEffect(() => {
+    if (profile) setEmailOn(profile.emailNotifications ?? true)
+  }, [profile])
 
   useEffect(() => {
     if (!currentUser) return
@@ -77,6 +85,15 @@ export function NotificationsBell() {
     setSoundOn((v) => {
       setNotificationSoundEnabled(!v)
       return !v
+    })
+  }
+
+  function handleToggleEmail() {
+    if (!currentUser) return
+    const next = !emailOn
+    setEmailOn(next)
+    updateUserProfile(currentUser.uid, { emailNotifications: next }).catch(() => {
+      setEmailOn(!next)
     })
   }
 
@@ -133,6 +150,20 @@ export function NotificationsBell() {
                 Notificaciones
               </p>
               <div className="flex items-center gap-3">
+                <button
+                  onClick={handleToggleEmail}
+                  title={emailOn ? 'Desactivar correos' : 'Activar correos'}
+                  aria-label={emailOn ? 'Desactivar correos' : 'Activar correos'}
+                  className={`text-slate-400 transition-colors hover:text-cyan-300 ${
+                    emailOn ? '' : 'opacity-50'
+                  }`}
+                >
+                  {emailOn ? (
+                    <MailIcon width={16} height={16} />
+                  ) : (
+                    <MailOffIcon width={16} height={16} />
+                  )}
+                </button>
                 <button
                   onClick={handleToggleSound}
                   title={soundOn ? 'Desactivar sonido' : 'Activar sonido'}

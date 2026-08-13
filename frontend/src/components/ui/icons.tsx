@@ -218,3 +218,23 @@ export function VolumeOffIcon(props: IconProps) {
     </svg>
   )
 }
+
+export function MailIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="2" y="4" width="20" height="16" rx="3" />
+      <path d="m2 7 10 7L22 7" />
+    </svg>
+  )
+}
+
+export function MailOffIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="2" y="4" width="18" height="14" rx="3" />
+      <path d="m2 7 10 7 3.5-2.45" />
+      <path d="M17.5 10.5V14" />
+      <path d="M17.5 17.5h.01" />
+    </svg>
+  )
+}

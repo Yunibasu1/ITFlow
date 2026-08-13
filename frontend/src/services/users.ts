@@ -38,6 +38,7 @@ export async function createUserProfile(
     phone: '',
     photoURL: '',
     status: 'active',
+    emailNotifications: true,
     createdAt: now,
     updatedAt: now,
   })
