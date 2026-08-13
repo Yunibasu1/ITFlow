@@ -73,7 +73,7 @@ export function AdminUsers() {
 
   return (
     <AppShell title="Usuarios">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Total" value={totals.total} accent="cyan" icon={<UsersIcon />} />
         <StatCard label="Técnicos" value={totals.technicians} accent="indigo" icon={<WrenchIcon />} />
         <StatCard label="Administradores" value={totals.admins} accent="amber" icon={<ShieldIcon />} />
